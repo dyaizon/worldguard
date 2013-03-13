@@ -43,6 +43,7 @@ public class ProtectedCuboidRegion extends ProtectedRegion {
     public ProtectedCuboidRegion(String id, BlockVector pt1, BlockVector pt2) {
         super(id);
         setMinMaxPoints(pt1, pt2);
+        this.type = 1;
     }
 
     /**

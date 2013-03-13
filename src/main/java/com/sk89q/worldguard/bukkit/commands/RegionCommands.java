@@ -211,6 +211,175 @@ public class RegionCommands {
                     + e.getMessage());
         }
     }
+    
+    @Command(aliases = {"rename", "ren"}, usage = "<from_id> <to_id>",
+            desc = "Renames a region", min = 2, max = 2)
+    public void rename(CommandContext args, CommandSender sender) throws CommandException {
+
+        Player player = plugin.checkPlayer(sender);
+        World world = player.getWorld();
+        WorldEditPlugin worldEdit = plugin.getWorldEdit();
+        LocalPlayer localPlayer = plugin.wrapPlayer(player);
+        String from_id = args.getString(0);
+        String to_id = args.getString(1);
+
+        if (from_id.equalsIgnoreCase("__global__") ||
+            to_id.equalsIgnoreCase("__global__")) {
+            throw new CommandException("You cannot rename __global__");
+        }
+
+        RegionManager mgr = plugin.getGlobalRegionManager().get(world);
+        ProtectedRegion from_region = mgr.getRegionExact(from_id);
+        ProtectedRegion to_region = mgr.getRegionExact(to_id);
+
+        if (from_region == null) {
+            throw new CommandException("Could not find a region by that ID.");
+        }
+        
+        if (to_region != null) {
+            throw new CommandException("Tried to rename to an already existing region.");
+        }
+
+        if (from_region.isOwner(localPlayer)) {
+            plugin.checkPermission(sender, "worldguard.region.rename.own");
+        } else if (from_region.isMember(localPlayer)) {
+            plugin.checkPermission(sender, "worldguard.region.rename.member");
+        } else {
+            plugin.checkPermission(sender, "worldguard.region.rename");
+        }
+        
+        if (from_region.getType() == 1) {
+            to_region = new ProtectedCuboidRegion(to_id,
+                                                  from_region.getMinimumPoint(),
+                                                  from_region.getMaximumPoint());
+        } else if (from_region.getType()) {
+            to_region = new ProtectedPolygonalRegion(to_id,
+                                                     from_region.getPoints(),
+                                                     from_region.getMinimumPoint(),
+                                                     from_region.getMaximumPoint());
+        } else {
+            throw new CommandException(
+                    "The type of the old region is invalid -- something's gone wrong!")
+        }
+
+        to_region.setMembers(from_region.getMembers());
+        to_region.setOwners(from_region.getOwners());
+        to_region.setFlags(from_region.getFlags());
+        to_region.setPriority(from_region.getPriority());
+        try {
+            region.setParent(from_region.getParent());
+        } catch (CircularInheritanceException ignore) {
+        }
+
+        mgr.removeRegion(from_region);
+        mgr.addRegion(to_region);
+
+        sender.sendMessage(ChatColor.YELLOW + "Region renamed.");
+
+        try {
+            mgr.save();
+        } catch (ProtectionDatabaseException e) {
+            throw new CommandException("Failed to write regions: "
+                    + e.getMessage());
+        }
+    }
+    
+    @Command(aliases = {"swap"}, usage = "<id1> <id2>",
+            desc = "Swaps two region ids", min = 2, max = 2)
+    public void rename(CommandContext args, CommandSender sender) throws CommandException {
+
+        Player player = plugin.checkPlayer(sender);
+        World world = player.getWorld();
+        WorldEditPlugin worldEdit = plugin.getWorldEdit();
+        LocalPlayer localPlayer = plugin.wrapPlayer(player);
+        String id1 = args.getString(0);
+        String id2 = args.getString(1);
+
+        if (id1.equalsIgnoreCase("__global__") ||
+            id2.equalsIgnoreCase("__global__")) {
+            throw new CommandException("You cannot swap with __global__");
+        }
+
+        RegionManager mgr = plugin.getGlobalRegionManager().get(world);
+        ProtectedRegion region1 = mgr.getRegionExact(id1);
+        ProtectedRegion region2 = mgr.getRegionExact(id2);
+        ProtectedRegion new_region2 = null;
+        ProtectedRegion new_region1 = null;
+
+        if (region1 == null || region2 == null) {
+            throw new CommandException("Could not find a region.");
+        }
+
+        if (region1.isOwner(localPlayer) && region2.isOwner(localPlayer)) {
+            plugin.checkPermission(sender, "worldguard.region.swap.own");
+        } else if ((region1.isMember(localPlayer) &&
+                   (region2.isOwner(localPlayer) || region2.isMember(localPlayer))) || 
+                   region1.isOwner(localPlayer) && region2.isMember(localPlayer)) {
+            plugin.checkPermission(sender, "worldguard.region.swap.member");
+        } else {
+            plugin.checkPermission(sender, "worldguard.region.swap");
+        }
+        
+        if (region1.getType() == 1) {
+            new_region2 = new ProtectedCuboidRegion(id2,
+                                                      region1.getMinimumPoint(),
+                                                      region1.getMaximumPoint());
+        } else if (region1.getType() == 2) {
+            new_region2 = new ProtectedPolygonalRegion(id2,
+                                                         region1.getPoints(),
+                                                         region1.getMinimumPoint().getBlockZ(),
+                                                         region1.getMaximumPoint().getBlockZ());
+        } else {
+            throw new CommandException(
+                    "The type of a region is invalid -- something's gone wrong!")
+        }
+        
+        if (region2.getType() == 1) {
+            new_region1 = new ProtectedCuboidRegion(id1,
+                                                      region2.getMinimumPoint(),
+                                                      region2.getMaximumPoint());
+        } else if (region2.getType() == 2) {
+            new_region1 = new ProtectedPolygonalRegion(id1,
+                                                         region2.getPoints(),
+                                                         region2.getMinimumPoint().getBlockZ(),
+                                                         region2.getMaximumPoint().getBlockZ());
+        } else {
+            throw new CommandException(
+                    "The type of a region is invalid -- something's gone wrong!")
+        }
+
+        new_region2.setMembers(region1.getMembers());
+        new_region2.setOwners(region1.getOwners());
+        new_region2.setFlags(region1.getFlags());
+        new_region2.setPriority(region1.getPriority());
+        try {
+            new_region2.setParent(region1.getParent());
+        } catch (CircularInheritanceException ignore) {
+        }
+        
+        new_region1.setMembers(region2.getMembers());
+        new_region1.setOwners(region2.getOwners());
+        new_region1.setFlags(region2.getFlags());
+        new_region1.setPriority(region2.getPriority());
+        try {
+            new_region1.setParent(region2.getParent());
+        } catch (CircularInheritanceException ignore) {
+        }
+
+        mgr.removeRegion(region1);
+        mgr.removeRegion(region2);
+        mgr.addRegion(new_region1);
+        mgr.addRegion(new_region2);
+
+        sender.sendMessage(ChatColor.YELLOW + "Regions swapped.");
+
+        try {
+            mgr.save();
+        } catch (ProtectionDatabaseException e) {
+            throw new CommandException("Failed to write regions: "
+                    + e.getMessage());
+        }
+    }
 
     @Command(aliases = {"claim"}, usage = "<id> [<owner1> [<owner2> [<owners...>]]]",
             desc = "Claim a region", min = 1)

@@ -37,6 +37,7 @@ public class ProtectedPolygonalRegion extends ProtectedRegion {
         setMinMaxPoints(points, minY, maxY);
         this.minY = min.getBlockY();
         this.maxY = max.getBlockY();
+        this.type = 2;
     }
 
     /**

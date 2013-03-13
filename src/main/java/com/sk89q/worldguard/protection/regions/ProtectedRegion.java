@@ -42,6 +42,7 @@ public abstract class ProtectedRegion implements Comparable<ProtectedRegion> {
 
     protected BlockVector min;
     protected BlockVector max;
+    protected int type;
 
     private static final Pattern idPattern = Pattern.compile("^[A-Za-z0-9_,'\\-\\+/]{1,}$");
 
@@ -122,6 +123,18 @@ public abstract class ProtectedRegion implements Comparable<ProtectedRegion> {
      */
     public String getId() {
         return id;
+    }
+    
+    /**
+     * Get the type of the region.
+     * 
+     * Type 1 = cuboid
+     * Type 2 = polygonal
+     * 
+     * @return type
+     */
+    public int getType() {
+        return type;
     }
 
     /**

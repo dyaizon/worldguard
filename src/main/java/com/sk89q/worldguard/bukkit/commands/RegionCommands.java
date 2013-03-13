@@ -255,11 +255,11 @@ public class RegionCommands {
         } else if (from_region.getType() ==2) {
             to_region = new ProtectedPolygonalRegion(to_id,
                                                      from_region.getPoints(),
-                                                     from_region.getMinimumPoint().getBlockZ(),
-                                                     from_region.getMaximumPoint().getBlockZ());
+                                                     from_region.getMinimumPoint().getBlockY(),
+                                                     from_region.getMaximumPoint().getBlockY());
         } else {
             throw new CommandException(
-                    "The type of the old region is invalid -- something's gone wrong!")
+                    "The type of the old region is invalid -- something's gone wrong!");
         }
 
         to_region.setMembers(from_region.getMembers());
@@ -267,11 +267,11 @@ public class RegionCommands {
         to_region.setFlags(from_region.getFlags());
         to_region.setPriority(from_region.getPriority());
         try {
-            region.setParent(from_region.getParent());
+            to_region.setParent(from_region.getParent());
         } catch (CircularInheritanceException ignore) {
         }
 
-        mgr.removeRegion(from_region);
+        mgr.removeRegion(from_id);
         mgr.addRegion(to_region);
 
         sender.sendMessage(ChatColor.YELLOW + "Region renamed.");
@@ -327,11 +327,11 @@ public class RegionCommands {
         } else if (region1.getType() == 2) {
             new_region2 = new ProtectedPolygonalRegion(id2,
                                                          region1.getPoints(),
-                                                         region1.getMinimumPoint().getBlockZ(),
-                                                         region1.getMaximumPoint().getBlockZ());
+                                                         region1.getMinimumPoint().getBlockY(),
+                                                         region1.getMaximumPoint().getBlockY());
         } else {
             throw new CommandException(
-                    "The type of a region is invalid -- something's gone wrong!")
+                    "The type of a region is invalid -- something's gone wrong!");
         }
         
         if (region2.getType() == 1) {
@@ -341,11 +341,11 @@ public class RegionCommands {
         } else if (region2.getType() == 2) {
             new_region1 = new ProtectedPolygonalRegion(id1,
                                                          region2.getPoints(),
-                                                         region2.getMinimumPoint().getBlockZ(),
-                                                         region2.getMaximumPoint().getBlockZ());
+                                                         region2.getMinimumPoint().getBlockY(),
+                                                         region2.getMaximumPoint().getBlockY());
         } else {
             throw new CommandException(
-                    "The type of a region is invalid -- something's gone wrong!")
+                    "The type of a region is invalid -- something's gone wrong!");
         }
 
         new_region2.setMembers(region1.getMembers());
@@ -366,8 +366,8 @@ public class RegionCommands {
         } catch (CircularInheritanceException ignore) {
         }
 
-        mgr.removeRegion(region1);
-        mgr.removeRegion(region2);
+        mgr.removeRegion(id1);
+        mgr.removeRegion(id2);
         mgr.addRegion(new_region1);
         mgr.addRegion(new_region2);
 

@@ -252,11 +252,11 @@ public class RegionCommands {
             to_region = new ProtectedCuboidRegion(to_id,
                                                   from_region.getMinimumPoint(),
                                                   from_region.getMaximumPoint());
-        } else if (from_region.getType()) {
+        } else if (from_region.getType() ==2) {
             to_region = new ProtectedPolygonalRegion(to_id,
                                                      from_region.getPoints(),
-                                                     from_region.getMinimumPoint(),
-                                                     from_region.getMaximumPoint());
+                                                     from_region.getMinimumPoint().getBlockZ(),
+                                                     from_region.getMaximumPoint().getBlockZ());
         } else {
             throw new CommandException(
                     "The type of the old region is invalid -- something's gone wrong!")

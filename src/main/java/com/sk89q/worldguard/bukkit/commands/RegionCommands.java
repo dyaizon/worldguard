@@ -286,7 +286,7 @@ public class RegionCommands {
     
     @Command(aliases = {"swap"}, usage = "<id1> <id2>",
             desc = "Swaps two region ids", min = 2, max = 2)
-    public void rename(CommandContext args, CommandSender sender) throws CommandException {
+    public void swap(CommandContext args, CommandSender sender) throws CommandException {
 
         Player player = plugin.checkPlayer(sender);
         World world = player.getWorld();

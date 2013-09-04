@@ -40,7 +40,7 @@ public final class DefaultFlag {
     public static final StateFlag OTHER_EXPLOSION = new StateFlag("other-explosion", true);
     public static final StateFlag SLEEP = new StateFlag("sleep", true);
     public static final StateFlag TNT = new StateFlag("tnt", true, RegionGroup.ALL);
-    public static final StateFlag LIGHTER = new StateFlag("lighter", true, RegionGroup.MEMBERS);
+    public static final StateFlag LIGHTER = new StateFlag("lighter", true);
     public static final StateFlag FIRE_SPREAD = new StateFlag("fire-spread", true);
     public static final StateFlag LAVA_FIRE = new StateFlag("lava-fire", true);
     public static final StateFlag LIGHTNING = new StateFlag("lightning", true);
@@ -60,6 +60,7 @@ public final class DefaultFlag {
     public static final StateFlag GRASS_SPREAD = new StateFlag("grass-growth", true);
     public static final StateFlag MYCELIUM_SPREAD = new StateFlag("mycelium-spread", true);
     public static final StateFlag VINE_GROWTH = new StateFlag("vine-growth", true);
+    public static final StateFlag SOIL_DRY = new StateFlag("soil-dry", true);
     public static final StateFlag ENDER_BUILD = new StateFlag("enderman-grief", true);
     public static final StateFlag INVINCIBILITY = new StateFlag("invincible", false, RegionGroup.ALL);
     public static final StateFlag EXP_DROPS = new StateFlag("exp-drops", true, RegionGroup.ALL);
@@ -80,8 +81,8 @@ public final class DefaultFlag {
     public static final EnumFlag<GameMode> GAME_MODE = new EnumFlag<GameMode>("game-mode", GameMode.class, RegionGroup.ALL);
     public static final IntegerFlag HEAL_DELAY = new IntegerFlag("heal-delay", RegionGroup.ALL);
     public static final IntegerFlag HEAL_AMOUNT = new IntegerFlag("heal-amount", RegionGroup.ALL);
-    public static final IntegerFlag MIN_HEAL = new IntegerFlag("heal-min-health", RegionGroup.ALL);
-    public static final IntegerFlag MAX_HEAL = new IntegerFlag("heal-max-health", RegionGroup.ALL);
+    public static final DoubleFlag MIN_HEAL = new DoubleFlag("heal-min-health", RegionGroup.ALL);
+    public static final DoubleFlag MAX_HEAL = new DoubleFlag("heal-max-health", RegionGroup.ALL);
     public static final IntegerFlag FEED_DELAY = new IntegerFlag("feed-delay", RegionGroup.ALL);
     public static final IntegerFlag FEED_AMOUNT = new IntegerFlag("feed-amount", RegionGroup.ALL);
     public static final IntegerFlag MIN_FOOD = new IntegerFlag("feed-min-hunger", RegionGroup.ALL);
@@ -106,7 +107,7 @@ public final class DefaultFlag {
         ENTITY_ITEM_FRAME_DESTROY, ITEM_DROP, /*MAX_PLAYERS, MAX_PLAYERS_MESSAGE,*/
         HEAL_AMOUNT, HEAL_DELAY, MIN_HEAL, MAX_HEAL,
         FEED_DELAY, FEED_AMOUNT, MIN_FOOD, MAX_FOOD,
-        SNOW_FALL, SNOW_MELT, ICE_FORM, ICE_MELT, GAME_MODE,
+        SNOW_FALL, SNOW_MELT, ICE_FORM, ICE_MELT, SOIL_DRY, GAME_MODE,
         MUSHROOMS, LEAF_DECAY, GRASS_SPREAD, MYCELIUM_SPREAD, VINE_GROWTH,
         SEND_CHAT, RECEIVE_CHAT, FIRE_SPREAD, LAVA_FIRE, LAVA_FLOW, WATER_FLOW,
         TELE_LOC, SPAWN_LOC, POTION_SPLASH,
@@ -118,5 +119,21 @@ public final class DefaultFlag {
 
     public static Flag<?>[] getFlags() {
         return flagsList;
+    }
+    
+    /**
+     * Try to match the flag with the given ID using a fuzzy name match.
+     * 
+     * @param id the flag ID
+     * @return a flag, or null
+     */
+    public static Flag<?> fuzzyMatchFlag(String id) {
+        for (Flag<?> flag : DefaultFlag.getFlags()) {
+            if (flag.getName().replace("-", "").equalsIgnoreCase(id.replace("-", ""))) {
+                return flag;
+            }
+        }
+        
+        return null;
     }
 }

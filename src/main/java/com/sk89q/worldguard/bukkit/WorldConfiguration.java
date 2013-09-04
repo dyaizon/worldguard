@@ -130,6 +130,7 @@ public class WorldConfiguration {
     public boolean highFreqFlags;
     public int regionWand;
     public Set<EntityType> blockCreatureSpawn;
+    public boolean allowTamedSpawns;
     // public boolean useiConomy;
     // public boolean buyOnClaim;
     // public double buyOnClaimPrice;
@@ -161,11 +162,15 @@ public class WorldConfiguration {
     public boolean disableMyceliumSpread;
     public boolean disableVineGrowth;
     public boolean disableEndermanGriefing;
+    public boolean disableSnowmanTrails;
+    public boolean disableSoilDehydration;
+    public Set<Integer> allowedSnowFallOver;
     public boolean regionInvinciblityRemovesMobs;
     public boolean disableDeathMessages;
     public boolean disableObsidianGenerators;
 
     private Map<String, Integer> maxRegionCounts;
+
 
     /* Configuration data end */
 
@@ -352,7 +357,9 @@ public class WorldConfiguration {
         blockFireballExplosions = getBoolean("mobs.block-fireball-explosions", false);
         blockFireballBlockDamage = getBoolean("mobs.block-fireball-block-damage", false);
         antiWolfDumbness = getBoolean("mobs.anti-wolf-dumbness", false);
+        allowTamedSpawns = getBoolean("mobs.allow-tamed-spawns", true);
         disableEndermanGriefing = getBoolean("mobs.disable-enderman-griefing", false);
+        disableSnowmanTrails = getBoolean("mobs.disable-snowman-trails", false);
         blockEntityPaintingDestroy = getBoolean("mobs.block-painting-destroy", false);
         blockEntityItemFrameDestroy = getBoolean("mobs.block-item-frame-destroy", false);
         blockPluginSpawning = getBoolean("mobs.block-plugin-spawning", true);
@@ -398,6 +405,8 @@ public class WorldConfiguration {
         disableGrassGrowth = getBoolean("dynamics.disable-grass-growth", false);
         disableMyceliumSpread = getBoolean("dynamics.disable-mycelium-spread", false);
         disableVineGrowth = getBoolean("dynamics.disable-vine-growth", false);
+        disableSoilDehydration = getBoolean("dynamics.disable-soil-dehydration", false);
+        allowedSnowFallOver = new HashSet<Integer>(getIntList("dynamics.snow-fall-blocks", null));
 
         useRegions = getBoolean("regions.enable", true);
         regionInvinciblityRemovesMobs = getBoolean("regions.invincibility-removes-mobs", false);
@@ -583,7 +592,9 @@ public class WorldConfiguration {
         for (String group : plugin.getGroups(player)) {
             if (maxRegionCounts.containsKey(group)) {
                 int groupMax = maxRegionCounts.get(group);
-                if (max < groupMax) max = groupMax;
+                if (max < groupMax) {
+                    max = groupMax;
+                }
             }
         }
         if (max <= -1) {

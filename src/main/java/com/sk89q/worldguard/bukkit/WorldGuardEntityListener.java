@@ -26,7 +26,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Creature;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.EnderPearl;
@@ -35,7 +34,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.TNTPrimed;
@@ -44,6 +42,7 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.Wither;
 import org.bukkit.entity.WitherSkull;
 import org.bukkit.entity.Wolf;
+import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -90,8 +89,6 @@ public class WorldGuardEntityListener implements Listener {
 
     private WorldGuardPlugin plugin;
 
-    private EntityType tntMinecartType;
-
     /**
      * Construct the object;
      *
@@ -99,7 +96,6 @@ public class WorldGuardEntityListener implements Listener {
      */
     public WorldGuardEntityListener(WorldGuardPlugin plugin) {
         this.plugin = plugin;
-        tntMinecartType = BukkitUtil.tryEnum(EntityType.class, "MINECART_TNT");
     }
 
     /**
@@ -288,7 +284,7 @@ public class WorldGuardEntityListener implements Listener {
                     }
                 }
 
-                if (attacker instanceof TNTPrimed || attacker.getType() == tntMinecartType) {
+                if (attacker instanceof TNTPrimed || attacker instanceof ExplosiveMinecart) {
 
                     // The check for explosion damage should be handled already... But... What ever...
                     if (wcfg.blockTNTExplosions) {
@@ -618,7 +614,7 @@ public class WorldGuardEntityListener implements Listener {
                     }
                 }
             }
-        } else if (ent instanceof TNTPrimed || (ent != null && ent.getType() == tntMinecartType)) {
+        } else if (ent instanceof TNTPrimed || ent instanceof ExplosiveMinecart) {
             if (wcfg.blockTNTExplosions) {
                 event.setCancelled(true);
                 return;
@@ -745,7 +741,7 @@ public class WorldGuardEntityListener implements Listener {
                 return;
             }
         } else if (event.getEntityType() == EntityType.PRIMED_TNT
-                || event.getEntityType() == tntMinecartType) {
+                || event.getEntityType() == EntityType.MINECART_TNT) {
             if (wcfg.blockTNTExplosions) {
                 event.setCancelled(true);
                 return;
@@ -765,8 +761,15 @@ public class WorldGuardEntityListener implements Listener {
         WorldConfiguration wcfg = cfg.get(event.getEntity().getWorld());
 
         // allow spawning of creatures from plugins
-        if (!wcfg.blockPluginSpawning && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM)
+        if (!wcfg.blockPluginSpawning && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) {
             return;
+        }
+
+        if (wcfg.allowTamedSpawns
+                && event.getEntity() instanceof Tameable // nullsafe check
+                && ((Tameable) event.getEntity()).isTamed()) {
+            return;
+        }
 
         EntityType entityType = event.getEntityType();
 

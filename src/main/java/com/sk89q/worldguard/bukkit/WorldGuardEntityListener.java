@@ -33,6 +33,7 @@ import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -190,7 +191,8 @@ public class WorldGuardEntityListener implements Listener {
 
             if (type == DamageCause.BLOCK_EXPLOSION
                     && (wcfg.disableExplosionDamage || wcfg.blockOtherExplosions
-                            || !plugin.getGlobalRegionManager().allows(DefaultFlag.OTHER_EXPLOSION, player.getLocation()))) {
+                            || (wcfg.explosionFlagCancellation
+                                && !plugin.getGlobalRegionManager().allows(DefaultFlag.OTHER_EXPLOSION, player.getLocation())))) {
                 event.setCancelled(true);
                 return;
             }
@@ -200,7 +202,8 @@ public class WorldGuardEntityListener implements Listener {
             // handled anywhere else
             if (type == DamageCause.BLOCK_EXPLOSION
                     && (wcfg.blockOtherExplosions
-                            || !plugin.getGlobalRegionManager().allows(DefaultFlag.OTHER_EXPLOSION, defender.getLocation()))) {
+                            || (wcfg.explosionFlagCancellation
+                                && !plugin.getGlobalRegionManager().allows(DefaultFlag.OTHER_EXPLOSION, defender.getLocation())))) {
                 event.setCancelled(true);
                 return;
             }
@@ -234,6 +237,13 @@ public class WorldGuardEntityListener implements Listener {
                         return;
                     }
                 }
+            }
+        }
+
+        if (defender instanceof ItemFrame) {
+            if (checkItemFrameProtection(attacker, (ItemFrame) defender)) {
+                event.setCancelled(true);
+                return;
             }
         }
 
@@ -291,7 +301,7 @@ public class WorldGuardEntityListener implements Listener {
                         event.setCancelled(true);
                         return;
                     }
-                    if (wcfg.useRegions) {
+                    if (wcfg.useRegions && wcfg.explosionFlagCancellation) {
                         Vector pt = toVector(defender.getLocation());
                         RegionManager mgr = plugin.getGlobalRegionManager().get(player.getWorld());
                         ApplicableRegionSet set = mgr.getApplicableRegions(pt);
@@ -327,7 +337,7 @@ public class WorldGuardEntityListener implements Listener {
                                 tryCancelPVPEvent((Player) fireball.getShooter(), player, event, false);
                             }
                         } else {
-                            if (!set.allows(DefaultFlag.GHAST_FIREBALL, localPlayer)) {
+                            if (!set.allows(DefaultFlag.GHAST_FIREBALL, localPlayer) && wcfg.explosionFlagCancellation) {
                                 event.setCancelled(true);
                                 return;
                             }
@@ -358,7 +368,7 @@ public class WorldGuardEntityListener implements Listener {
                         }
 
                         if (attacker instanceof Creeper) {
-                            if (!set.allows(DefaultFlag.CREEPER_EXPLOSION, localPlayer)) {
+                            if (!set.allows(DefaultFlag.CREEPER_EXPLOSION, localPlayer) && wcfg.explosionFlagCancellation) {
                                 event.setCancelled(true);
                                 return;
                             }
@@ -382,7 +392,6 @@ public class WorldGuardEntityListener implements Listener {
                             }
                         }
                     }
-
                 }
             }
         }
@@ -406,7 +415,7 @@ public class WorldGuardEntityListener implements Listener {
             }
 
             // Check Mob
-            if (attacker != null && attacker instanceof LivingEntity && !(attacker instanceof Player)) {
+            if (attacker != null && !(attacker instanceof Player)) {
                 if (wcfg.disableMobDamage) {
                     event.setCancelled(true);
                     return;
@@ -437,6 +446,11 @@ public class WorldGuardEntityListener implements Listener {
                         tryCancelPVPEvent((Player) attacker, player, event, false);
                     }
                 }
+            }
+        } else if (defender instanceof ItemFrame) {
+            if (checkItemFrameProtection(attacker, (ItemFrame) defender)) {
+                event.setCancelled(true);
+                return;
             }
         }
 
@@ -526,7 +540,7 @@ public class WorldGuardEntityListener implements Listener {
                 return;
             }
 
-           if (wcfg.teleportOnSuffocation && type == DamageCause.SUFFOCATION) {
+            if (wcfg.teleportOnSuffocation && type == DamageCause.SUFFOCATION) {
                 BukkitUtil.findFreePosition(player);
                 event.setCancelled(true);
                 return;
@@ -591,7 +605,7 @@ public class WorldGuardEntityListener implements Listener {
                 for (Block block : event.blockList()) {
                     if (!mgr.getApplicableRegions(toVector(block)).allows(DefaultFlag.CREEPER_EXPLOSION)) {
                         event.blockList().clear();
-                        event.setCancelled(true);
+                        if (wcfg.explosionFlagCancellation) event.setCancelled(true);
                         return;
                     }
                 }
@@ -599,7 +613,6 @@ public class WorldGuardEntityListener implements Listener {
         } else if (ent instanceof EnderDragon) {
             if (wcfg.blockEnderDragonBlockDamage) {
                 event.blockList().clear();
-                event.setCancelled(true);
                 return;
             }
 
@@ -609,7 +622,7 @@ public class WorldGuardEntityListener implements Listener {
                 for (Block block : event.blockList()) {
                     if (!mgr.getApplicableRegions(toVector(block)).allows(DefaultFlag.ENDERDRAGON_BLOCK_DAMAGE)) {
                         event.blockList().clear();
-                        event.setCancelled(true);
+                        if (wcfg.explosionFlagCancellation) event.setCancelled(true);
                         return;
                     }
                 }
@@ -630,7 +643,7 @@ public class WorldGuardEntityListener implements Listener {
                 for (Block block : event.blockList()) {
                     if (!mgr.getApplicableRegions(toVector(block)).allows(DefaultFlag.TNT)) {
                         event.blockList().clear();
-                        event.setCancelled(true);
+                        if (wcfg.explosionFlagCancellation) event.setCancelled(true);
                         return;
                     }
                 }
@@ -662,7 +675,7 @@ public class WorldGuardEntityListener implements Listener {
                 for (Block block : event.blockList()) {
                     if (!mgr.getApplicableRegions(toVector(block)).allows(DefaultFlag.GHAST_FIREBALL)) {
                         event.blockList().clear();
-                        event.setCancelled(true);
+                        if (wcfg.explosionFlagCancellation) event.setCancelled(true);
                         return;
                     }
                 }
@@ -686,7 +699,8 @@ public class WorldGuardEntityListener implements Listener {
                 RegionManager mgr = plugin.getGlobalRegionManager().get(world);
                 for (Block block : event.blockList()) {
                     if (!mgr.getApplicableRegions(toVector(block)).allows(DefaultFlag.OTHER_EXPLOSION)) {
-                        event.setCancelled(true);
+                        event.blockList().clear();
+                        if (wcfg.explosionFlagCancellation) event.setCancelled(true);
                         return;
                     }
                 }
@@ -990,4 +1004,41 @@ public class WorldGuardEntityListener implements Listener {
             event.setCancelled(true);
         }
     }
+
+    /**
+     * Checks regions and config settings to protect items from being knocked
+     * out of item frames.
+     * @param attacker attacking entity
+     * @param defender item frame being damaged
+     * @return true if the event should be cancelled
+     */
+    private boolean checkItemFrameProtection(Entity attacker, ItemFrame defender) {
+        World world = attacker.getWorld();
+        ConfigurationManager cfg = plugin.getGlobalStateManager();
+        WorldConfiguration wcfg = cfg.get(world);
+        if (wcfg.useRegions) {
+        // bukkit throws this event when a player attempts to remove an item from a frame
+            RegionManager mgr = plugin.getGlobalRegionManager().get(world);
+            if (attacker instanceof Player) {
+                Player player = (Player) attacker;
+                LocalPlayer localPlayer = plugin.wrapPlayer(player);
+                if (!plugin.getGlobalRegionManager().hasBypass(player, world)
+                        && !mgr.getApplicableRegions(defender.getLocation())
+                                .canBuild(localPlayer)) {
+                    player.sendMessage(ChatColor.DARK_RED + "You don't have permission for this area.");
+                    return true;
+                }
+            } else {
+                if (!plugin.getGlobalRegionManager().allows(
+                        DefaultFlag.ENTITY_ITEM_FRAME_DESTROY, defender.getLocation())) {
+                    return true;
+                }
+            }
+        }
+        if (wcfg.blockEntityItemFrameDestroy && !(attacker instanceof Player)) {
+            return true;
+        }
+        return false;
+    }
+
 }

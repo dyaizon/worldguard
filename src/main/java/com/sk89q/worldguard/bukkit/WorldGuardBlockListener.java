@@ -685,6 +685,16 @@ public class WorldGuardBlockListener implements Listener {
 
         int type = event.getNewState().getTypeId();
 
+        if (event instanceof EntityBlockFormEvent) {
+            if (((EntityBlockFormEvent) event).getEntity() instanceof Snowman) {
+                if (wcfg.disableSnowmanTrails) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+            return;
+        }
+
         if (type == BlockID.ICE) {
             if (wcfg.disableIceFormation) {
                 event.setCancelled(true);
@@ -712,27 +722,6 @@ public class WorldGuardBlockListener implements Listener {
             }
             if (wcfg.useRegions && !plugin.getGlobalRegionManager().allows(
                     DefaultFlag.SNOW_FALL, event.getBlock().getLocation())) {
-                event.setCancelled(true);
-                return;
-            }
-        }
-    }
-
-    /*
-     * Called when a block is formed by an entity.
-     */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onEntityBlockForm(EntityBlockFormEvent event) {
-        ConfigurationManager cfg = plugin.getGlobalStateManager();
-        WorldConfiguration wcfg = cfg.get(event.getBlock().getWorld());
-
-        if (cfg.activityHaltToggle) {
-            event.setCancelled(true);
-            return;
-        }
-
-        if (event.getEntity() instanceof Snowman) {
-            if (wcfg.disableSnowmanTrails) {
                 event.setCancelled(true);
                 return;
             }
@@ -816,33 +805,34 @@ public class WorldGuardBlockListener implements Listener {
         ConfigurationManager cfg = plugin.getGlobalStateManager();
         WorldConfiguration wcfg = cfg.get(event.getBlock().getWorld());
 
-        int type = event.getBlock().getTypeId();
-
-        if (type == BlockID.ICE) {
+        switch (event.getBlock().getTypeId()) {
+        case BlockID.ICE:
             if (wcfg.disableIceMelting) {
                 event.setCancelled(true);
                 return;
             }
+
             if (wcfg.useRegions && !plugin.getGlobalRegionManager().allows(
                     DefaultFlag.ICE_MELT, event.getBlock().getLocation())) {
                 event.setCancelled(true);
                 return;
             }
-        }
+            break;
 
-        if (type == BlockID.SNOW) {
+        case BlockID.SNOW:
             if (wcfg.disableSnowMelting) {
                 event.setCancelled(true);
                 return;
             }
+
             if (wcfg.useRegions && !plugin.getGlobalRegionManager().allows(
                     DefaultFlag.SNOW_MELT, event.getBlock().getLocation())) {
                 event.setCancelled(true);
                 return;
             }
-        }
+            break;
 
-        if (type == BlockID.SOIL) {
+        case BlockID.SOIL:
             if (wcfg.disableSoilDehydration) {
                 event.setCancelled(true);
                 return;
@@ -852,7 +842,9 @@ public class WorldGuardBlockListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
+            break;
         }
+
     }
 
     /*
